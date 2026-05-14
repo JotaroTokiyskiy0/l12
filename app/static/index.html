@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fitness Training Platform</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f6fa;
+            color: #2c3e50;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        .container { max-width: 1100px; margin: 0 auto; }
+
+        header {
+            background: #fff;
+            border-radius: 12px;
+            padding: 24px 32px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+        header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1a1a2e;
+        }
+        header p {
+            color: #7f8c8d;
+            font-size: 14px;
+            margin-top: 4px;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 24px 32px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+        .card h2 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #1a1a2e;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .form-grid input, .form-grid select, .form-grid textarea {
+            padding: 10px 12px;
+            border: 1px solid #dcdde1;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.2s;
+            background: #fafafa;
+            width: 100%;
+        }
+        .form-grid input:focus, .form-grid select:focus, .form-grid textarea:focus {
+            outline: none;
+            border-color: #3498db;
+            background: #fff;
+        }
+        .form-grid textarea { grid-column: 1 / -1; resize: vertical; min-height: 60px; }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+        .btn-primary { background: #3498db; color: #fff; }
+        .btn-primary:hover { background: #2980b9; }
+        .btn-secondary { background: #ecf0f1; color: #2c3e50; }
+        .btn-secondary:hover { background: #d5dbdb; }
+        .btn-danger { background: #e74c3c; color: #fff; }
+        .btn-danger:hover { background: #c0392b; }
+        .btn-warning { background: #f39c12; color: #fff; }
+        .btn-warning:hover { background: #d68910; }
+        .btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+
+        .table-wrapper { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        thead { background: #f8f9fa; }
+        th {
+            text-align: left; padding: 12px 16px; font-weight: 600;
+            color: #636e72; border-bottom: 2px solid #e9ecef; white-space: nowrap;
+        }
+        td { padding: 12px 16px; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
+        tr:hover td { background: #f8f9fa; }
+
+        .desc-cell {
+            max-width: 220px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: #636e72;
+        }
+
+        .empty-state { text-align: center; padding: 40px 20px; color: #b2bec3; }
+        .empty-state p { font-size: 16px; }
+
+        .badge {
+            display: inline-block; padding: 2px 10px; border-radius: 12px;
+            font-size: 12px; font-weight: 500;
+        }
+        .badge-strength { background: #e8f8f5; color: #1abc9c; }
+        .badge-cardio { background: #fef9e7; color: #f1c40f; }
+        .badge-stretching { background: #ebf5fb; color: #3498db; }
+        .badge-crossfit { background: #fdedec; color: #e74c3c; }
+        .badge-other { background: #f0f0f0; color: #636e72; }
+        .badge-easy { background: #e8f8f5; color: #27ae60; }
+        .badge-medium { background: #fef9e7; color: #f39c12; }
+        .badge-hard { background: #fdedec; color: #e74c3c; }
+
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.4); z-index: 1000;
+            align-items: center; justify-content: center;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal {
+            background: #fff; border-radius: 12px; padding: 28px 32px;
+            max-width: 550px; width: 90%; max-height: 90vh;
+            overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+        }
+        .modal h2 { margin-bottom: 20px; }
+        .modal .form-grid { margin-bottom: 12px; }
+        .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 16px; }
+
+        .toast {
+            position: fixed; bottom: 30px; left: 50%;
+            transform: translateX(-50%); background: #2c3e50; color: #fff;
+            padding: 12px 24px; border-radius: 8px; font-size: 14px;
+            opacity: 0; transition: opacity 0.3s; z-index: 2000; pointer-events: none;
+        }
+        .toast.visible { opacity: 1; }
+        .toast.success { background: #27ae60; }
+        .toast.error { background: #e74c3c; }
+
+        @media (max-width: 640px) {
+            body { padding: 12px; }
+            header, .card { padding: 16px 20px; }
+            .form-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🏋️ Fitness Training Platform</h1>
+            <p>Управление упражнениями на платформе спортивных тренировок</p>
+        </header>
+
+        <div class="card">
+            <h2>Добавить упражнение</h2>
+            <div class="form-grid">
+                <input type="text" id="new-name" placeholder="Название *" required>
+                <select id="new-category">
+                    <option value="силовая">Силовая</option>
+                    <option value="кардио">Кардио</option>
+                    <option value="растяжка">Растяжка</option>
+                    <option value="кроссфит">Кроссфит</option>
+                </select>
+                <select id="new-difficulty">
+                    <option value="лёгкий">Лёгкий</option>
+                    <option value="средний" selected>Средний</option>
+                    <option value="сложный">Сложный</option>
+                </select>
+                <input type="number" id="new-calories" placeholder="Калорий/час *" step="0.1" min="0">
+                <textarea id="new-description" placeholder="Описание (необязательно)"></textarea>
+            </div>
+            <button class="btn btn-primary" onclick="createExercise()">➕ Добавить</button>
+        </div>
+
+        <div class="card">
+            <h2>Список упражнений</h2>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Название</th>
+                            <th>Категория</th>
+                            <th>Сложность</th>
+                            <th>Калорий/час</th>
+                            <th>Описание</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody id="exercises-table-body">
+                        <tr class="empty-state">
+                            <td colspan="7"><p>⏳ Загрузка...</p></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="edit-modal">
+        <div class="modal">
+            <h2>Редактировать упражнение</h2>
+            <input type="hidden" id="edit-id">
+            <div class="form-grid">
+                <input type="text" id="edit-name" placeholder="Название *" required>
+                <select id="edit-category">
+                    <option value="силовая">Силовая</option>
+                    <option value="кардио">Кардио</option>
+                    <option value="растяжка">Растяжка</option>
+                    <option value="кроссфит">Кроссфит</option>
+                </select>
+                <select id="edit-difficulty">
+                    <option value="лёгкий">Лёгкий</option>
+                    <option value="средний">Средний</option>
+                    <option value="сложный">Сложный</option>
+                </select>
+                <input type="number" id="edit-calories" placeholder="Калорий/час *" step="0.1" min="0">
+                <textarea id="edit-description" placeholder="Описание (необязательно)"></textarea>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeModal()">Отмена</button>
+                <button class="btn btn-primary" onclick="saveEdit()">💾 Сохранить</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="confirm-modal">
+        <div class="modal" style="max-width: 400px;">
+            <h2>Подтверждение</h2>
+            <p id="confirm-message" style="margin-bottom: 24px; color: #636e72; line-height: 1.5;"></p>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeConfirm()">Отмена</button>
+                <button class="btn btn-danger" id="confirm-btn">🗑️ Удалить</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const API_BASE = '/exercises';
+
+        // ========== Toast ==========
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast ' + type + ' visible';
+            setTimeout(() => { toast.classList.remove('visible'); }, 3000);
+        }
+
+        // ========== Badges ==========
+
+        function getBadgeClass(value) {
+            const map = {
+                'силовая': 'badge-strength', 'кардио': 'badge-cardio',
+                'растяжка': 'badge-stretching', 'кроссфит': 'badge-crossfit',
+                'лёгкий': 'badge-easy', 'средний': 'badge-medium', 'сложный': 'badge-hard'
+            };
+            return map[value] || 'badge-other';
+        }
+
+        function translateDifficulty(d) {
+            return { 'лёгкий': 'Лёгкий', 'средний': 'Средний', 'сложный': 'Сложный' }[d] || d;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // ========== CRUD ==========
+
+        async function loadExercises() {
+            try {
+                const res = await fetch(API_BASE);
+                if (!res.ok) throw new Error('Ошибка загрузки');
+                renderTable(await res.json());
+            } catch (err) {
+                showToast('Ошибка загрузки упражнений', 'error');
+                document.getElementById('exercises-table-body').innerHTML =
+                    '<tr class="empty-state"><td colspan="7"><p>❌ Не удалось загрузить данные</p></td></tr>';
+            }
+        }
+
+        function renderTable(exercises) {
+            const tbody = document.getElementById('exercises-table-body');
+            if (!exercises.length) {
+                tbody.innerHTML = '<tr class="empty-state"><td colspan="7"><p>📭 Упражнений пока нет. Добавьте первое!</p></td></tr>';
+                return;
+            }
+            tbody.innerHTML = exercises.map(ex => `
+                <tr>
+                    <td>${ex.id}</td>
+                    <td><strong>${escapeHtml(ex.name)}</strong></td>
+                    <td><span class="badge ${getBadgeClass(ex.category)}">${escapeHtml(ex.category)}</span></td>
+                    <td><span class="badge ${getBadgeClass(ex.difficulty)}">${translateDifficulty(ex.difficulty)}</span></td>
+                    <td>${ex.calories_per_hour}</td>
+                    <td class="desc-cell">${ex.description ? escapeHtml(ex.description) : '<span style="color:#b2bec3">—</span>'}</td>
+                    <td>
+                        <div class="btn-group">
+                            <button class="btn btn-warning" onclick="openEdit(${ex.id})">✏️</button>
+                            <button class="btn btn-danger" onclick="deleteExercise(${ex.id})">🗑️</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function createExercise() {
+            const name = document.getElementById('new-name').value.trim();
+            const category = document.getElementById('new-category').value;
+            const difficulty = document.getElementById('new-difficulty').value;
+            const calories = parseFloat(document.getElementById('new-calories').value);
+            const description = document.getElementById('new-description').value.trim() || null;
+
+            if (!name) { showToast('Введите название упражнения', 'error'); return; }
+            if (isNaN(calories) || calories < 0) { showToast('Введите корректное значение калорий', 'error'); return; }
+
+            try {
+                const res = await fetch(API_BASE, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, category, difficulty, calories_per_hour: calories, description })
+                });
+                if (!res.ok) {
+                    const err = await res.json();
+                    throw new Error(err.detail || 'Ошибка создания');
+                }
+                document.getElementById('new-name').value = '';
+                document.getElementById('new-calories').value = '';
+                document.getElementById('new-description').value = '';
+                showToast('Упражнение создано!');
+                loadExercises();
+            } catch (err) {
+                showToast('Ошибка: ' + err.message, 'error');
+            }
+        }
+
+        function openEdit(id) {
+            fetch(API_BASE + '/' + id)
+                .then(res => {
+                    if (!res.ok) throw new Error('Not found');
+                    return res.json();
+                })
+                .then(ex => {
+                    document.getElementById('edit-id').value = ex.id;
+                    document.getElementById('edit-name').value = ex.name;
+                    document.getElementById('edit-category').value = ex.category;
+                    document.getElementById('edit-difficulty').value = ex.difficulty;
+                    document.getElementById('edit-calories').value = ex.calories_per_hour;
+                    document.getElementById('edit-description').value = ex.description || '';
+                    document.getElementById('edit-modal').classList.add('active');
+                })
+                .catch(() => showToast('Не удалось загрузить упражнение', 'error'));
+        }
+
+        function closeModal() {
+            document.getElementById('edit-modal').classList.remove('active');
+        }
+
+        async function saveEdit() {
+            const id = document.getElementById('edit-id').value;
+            const name = document.getElementById('edit-name').value.trim();
+            const category = document.getElementById('edit-category').value;
+            const difficulty = document.getElementById('edit-difficulty').value;
+            const calories = parseFloat(document.getElementById('edit-calories').value);
+            const description = document.getElementById('edit-description').value.trim() || null;
+
+            if (!name) { showToast('Введите название', 'error'); return; }
+            if (isNaN(calories) || calories < 0) { showToast('Некорректные калории', 'error'); return; }
+
+            try {
+                const res = await fetch(API_BASE + '/' + id, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, category, difficulty, calories_per_hour: calories, description })
+                });
+                if (!res.ok) throw new Error('Ошибка обновления');
+                showToast('Упражнение обновлено!');
+                closeModal();
+                loadExercises();
+            } catch (err) {
+                showToast('Ошибка: ' + err.message, 'error');
+            }
+        }
+
+        // ========== Кастомный диалог подтверждения ==========
+
+        function showConfirm(message, onConfirm) {
+            document.getElementById('confirm-message').textContent = message;
+            document.getElementById('confirm-modal').classList.add('active');
+            // Вешаем обработчик с { once: true } — сработает только 1 раз
+            document.getElementById('confirm-btn').addEventListener('click', function handler() {
+                closeConfirm();
+                onConfirm();
+            }, { once: true });
+        }
+
+        function closeConfirm() {
+            document.getElementById('confirm-modal').classList.remove('active');
+        }
+
+        function deleteExercise(id) {
+            showConfirm(
+                'Вы уверены, что хотите удалить упражнение #' + id + '?',
+                async function() {
+                    try {
+                        const res = await fetch(API_BASE + '/' + id, { method: 'DELETE' });
+                        if (!res.ok) {
+                            const err = await res.json();
+                            throw new Error(err.detail || 'Ошибка удаления');
+                        }
+                        showToast('Упражнение удалено!');
+                        loadExercises();
+                    } catch (err) {
+                        showToast('Ошибка: ' + err.message, 'error');
+                    }
+                }
+            );
+        }
+
+        // Закрытие модальных окон по клику вне их
+        document.getElementById('edit-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+        document.getElementById('confirm-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeConfirm();
+        });
+
+        document.addEventListener('DOMContentLoaded', loadExercises);
+    </script>
+</body>
+</html>
